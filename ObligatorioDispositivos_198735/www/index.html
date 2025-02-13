@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Actividades</title>
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+</head>
+
+<body>
+    <ion-app>
+        <ion-router id="ruteo" root="/">
+            <ion-route url="/" component="page-home"></ion-route>
+            <!--Login-->
+            <ion-route url="/login" component="page-login"></ion-route>
+            <!--Registro-->
+            <ion-route url="/usuarios" component="page-registro"></ion-route>
+            <!--Paises
+            <ion-route url="/paises" component="page-paises"></ion-route>-->
+            <!--ObtenerRegistros-->
+            <ion-route url="/registros" component="page-obtenerRegistros"></ion-route>
+            <!--AgregarRegistro-->
+            <ion-route url="/registros" component="page-agregarRegistro"></ion-route>
+            <!--Actividades-->
+            <ion-route url="/actividades" component="page-obtenerActividades"></ion-route>
+
+        </ion-router>
+        <ion-nav id="nav"></ion-nav>
+
+        <ion-menu content-id="main" id="menu">
+            <ion-header>
+                <ion-buttons slot="start">
+                    <ion-buttons color="dark">
+                        <ion-menu-button></ion-menu-button>
+                        <ion-title>Menú</ion-title>
+                    </ion-buttons>
+            </ion-header>
+            <ion-content>
+                <ion-list>
+                    <ion-item id="btnMenuRegistro" href="/usuarios" onclick="cerrarMenu()">Registro</ion-item>
+                    <ion-item id="btnMenuLogin" href="/login" onclick="cerrarMenu()">Login</ion-item>
+                    <ion-item id="btnMenuAgregarRegistro" href="/registros" onclick="cerrarMenu()">Agregar
+                        Actividad</ion-item>
+                    <ion-item id="btnMenuObtenerActividades" href="/actividades" onclick="cerrarMenu()">Obtener
+                        Actividades</ion-item>
+                    <ion-item id="btnMenuCerrarSesion" onclick="cerrarSesion()">Salir</ion-item>
+                </ion-list>
+            </ion-content>
+        </ion-menu>
+        <div id="main"></div>
+
+        <page-home class="ion-page" id="pantalla-home">
+            <title>App Actividades</title>
+        </page-home>
+
+        <!--Pantalla de login-->
+        <page-login class="ion-page" id="pantalla-login">
+            <ion-header>
+                <ion-toolbar color="secondary">
+                    <ion-buttons slot="start">
+                        <ion-menu-button></ion-menu-button>
+                    </ion-buttons>
+                    <ion-title>Login</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+                <ion-list>
+                    <br><br>
+                    <label for="txtLoginUsuario">Usuario</label>
+                    <input type="text" id="txtLoginUsuario">
+                    <br>
+                    <label for="txtLoginPassword">Contraseña</label>
+                    <input type="password" id="txtLoginPassword">
+                    <br><br>
+                    <ion-button id="btnLoginIngresar" expand="block" color="warning">Ingresar</ion-button>
+                    <br><br>
+                </ion-list>
+                <p id="pLoginMensajes"></p>
+                <br><br><br>
+            </ion-content>
+        </page-login>
+
+        <!--Pantalla de registro-->
+        <page-registro class="ion-page" id="pantalla-registro">
+            <ion-header>
+                <ion-toolbar color="success">
+                    <ion-buttons slot="start">
+                        <ion-buttons>
+                            <ion-menu-button></ion-menu-button>
+                        </ion-buttons>
+                        <ion-title>Registro</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+                <ion-list>
+                    <label for="txtRegistroUsuario">Usuario</label>
+                    <input type="text" id="txtRegistroUsuario">
+                    <br><br>
+                    <label for="txtRegistroPassword">Contraseña</label>
+                    <input type="password" id="txtRegistroPassword">
+                    <br><br>
+                    <label for="txtRegistroPais">País de Residencia</label>
+                    <input type="number" id="txtRegistroPais">
+                    <br><br>
+                    <input type="button" value="Registrar" id="btnRegistroRegistrarse">
+                </ion-list>
+                <br><br>
+                <p id="pRegistroMensajes"></p>
+            </ion-content>
+
+        </page-registro>
+        <!--Pantalla de obtenerActividades-->
+        <page-obtenerActividades class="ion-page" id="pantalla-obtenerActividades">
+            <ion-header>
+                <ion-toolbar color="warning">
+                    <ion-buttons slot="start">
+                        <ion-menu-button></ion-menu-button>
+                    </ion-buttons>
+                    <ion-title>Actividades</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <ion-list>
+                    <ion-item>
+                        <ion-select id="pantalla-obtenerActividades
+                        " placeholder="Seleccione actividad">
+                        </ion-select>
+                    </ion-item>
+                </ion-list>
+                <br>
+                <div>Acá iría el mapa.</div>
+                <br><br><br>
+            </ion-content>
+        </page-obtenerActividades>
+
+
+    </ion-app>
+
+
+    <script type="text/javascript" src="js/clases.js"></script>
+    <script type="text/javascript" src="js/miCodigo.js"></script>
+</body>
+
+</html>
