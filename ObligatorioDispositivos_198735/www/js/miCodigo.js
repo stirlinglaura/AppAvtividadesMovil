@@ -150,67 +150,6 @@ function navegar(evt) {
 }
 
 // Registro------------------
-function Registro2() {
-  let usuarioIngresado = document.querySelector("#txtRegistroUsuario").value;
-  let passwordIngresado = document.querySelector("#txtRegistroPassword").value;
-  let paisIngresado = document.querySelector("#txtRegistroPais").value;
-
-  document.querySelector("#pRegistroMensajes").innerHTML = "";
-
-  if (usuarioIngresado && passwordIngresado && paisIngresado) {
-    const url = apiBaseURL + "/usuarios";
-    const bodyDeLaSolicitud = {
-      usuario: usuarioIngresado,
-      password: passwordIngresado,
-      idPais: paisIngresado,
-    };
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(bodyDeLaSolicitud), // Se convierte el objeto a un string para enviarlo.
-    })
-      .then((respuestaDeLaAPI) => {
-        // Se recibe la respuesta de la API.
-        if (respuestaDeLaAPI.status == 200) {
-          return respuestaDeLaAPI.json(); // .Json es una promesa que devuelve el
-          // bodyDeLaRespuesta con el then.
-        } else {
-          document.querySelector("#pRegistroMensajes").innerHTML =
-            "Ha ocurrido un error, por favor intente nuevamente.";
-        }
-      })
-      .then((bodyDeLaRespuesta) => {
-        // Se recibe el body de la respuesta de la API.
-        if (bodyDeLaRespuesta.data?.token) {
-          document.querySelector("#txtRegistroUsuario").value = "";
-          document.querySelector("#txtRegistroPassword").value = "";
-          document.querySelector("#txtRegistroPais").value = "";
-          document.querySelector("#pRegistroMensajes").innerHTML =
-            "Se ha registrado exitosamente :)";
-          usuarioLogueado = Usuario.parse(bodyDeLaRespuesta.data);
-          //guardo el token en localstorage para el auto-login
-          localStorage.setItem(
-            "UsuarioLogueadoObligatorio",
-            JSON.stringify(usuarioLogueado)
-          );
-          NAV.setRoot("page-obtenerActividades"); // Cambio el stack y redirijo a Login
-          NAV.popToRoot();
-        } else if (bodyDeLaRespuesta.error) {
-          document.querySelector("#pRegistroMensajes").innerHTML =
-            bodyDeLaRespuesta.error;
-        }
-      })
-      .catch((error) => {
-        //da error
-        console.log("Error al registrar usuario", error);
-      });
-  } else {
-    document.querySelector("#pRegistroMensajes").innerHTML =
-      "Todos los campos son obligatorios.";
-  }
-}
 function Registro() {
   let usuarioIngresado = document.querySelector("#txtRegistroUsuario").value;
   let passwordIngresado = document.querySelector("#txtRegistroPassword").value;
@@ -301,35 +240,39 @@ function Login() {
           document.querySelector("#pLoginMensajes").innerHTML =
             "Ha ocurrido un error. Por favor, intente nuevamente.";
         }
-        return respuestaDeLaAPI.json(); //.json es una promesa que devuelve el body de la respuesta
-      })
-      .then((bodyDeLaRespuesta) => {
-        const token = bodyDeLaRespuesta.data?.token;
+        const token = respuestaDeLaAPI.headers.get("apiKey");
 
-        if (bodyDeLaRespuesta.data?.token) {
-          document.querySelector("#txtLoginUsuario").value = "";
-          document.querySelector("#txtLoginPassword").value = "";
-          // guardo el token
-          usuarioLogueado = Usuario.parse(bodyDeLaRespuesta.data);
-          localStorage.setItem(
-            "UsuarioLogueadoObligatorio",
-            JSON.stringify(usuarioLogueado)
-          );
-          NAV.setRoot("page-obtenerActividades"); // Cambio el stack y redirijo a Registro de Actividades
-          NAV.popToRoot();
-        } else if (bodyDeLaRespuesta.error) {
+        if (!token) {
           document.querySelector("#pLoginMensajes").innerHTML =
-            bodyDeLaRespuesta.error;
+            "El usuario no posee token";
         }
+        return token;
+      })
+      .then((token) => {
+        document.querySelector("#txtLoginUsuario").value = "";
+        document.querySelector("#txtLoginPassword").value = "";
+        // guardo el token
+        usuarioLogueado = Usuario.parse({
+          usuario: emailIngresado,
+          password: passwordIngresado,
+          token: token,
+        });
+        localStorage.setItem(
+          "UsuarioLogueadoObligatorio",
+          JSON.stringify(usuarioLogueado)
+        );
+        NAV.setRoot("page-obtenerActividades"); // Cambio el stack y redirijo a Registro de Actividades
+        NAV.popToRoot();
       })
       .catch((error) => {
-        console.log(error);
+        document.querySelector("#pLoginMensajes").innerHTML = error.message;
       });
   } else {
     document.querySelector("#pLoginMensajes").innerHTML =
       "Todos los campos son obligatorios.";
   }
 }
+
 function actualizarUsuarioLogueadoDesdeLocalStorage() {
   let usuarioRecuperadoDeLocalstorage = localStorage.getItem(
     "UsuarioLogueadoObligatorio"
