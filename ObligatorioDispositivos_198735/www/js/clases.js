@@ -2,7 +2,7 @@ class Usuario {
   usuario;
   password;
   idPais;
-  token;
+  apiKey;
 
   static parse(data) {
     const usuario = new Usuario();
@@ -15,8 +15,8 @@ class Usuario {
     if (data.idPais) {
       usuario.idPais = data.idPais;
     }
-    if (data.token) {
-      usuario.token = data.token;
+    if (data.apiKey) {
+      usuario.apiKey = data.apiKey;
     }
     return usuario;
   }

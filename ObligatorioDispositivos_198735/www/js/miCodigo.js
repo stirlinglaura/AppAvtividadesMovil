@@ -111,7 +111,6 @@ function cerrarSesion() {
   usuarioLogueado = null;
   localStorage.clear();
   NAV.setRoot("page-login");
-  NAV.popToRoot();
 }
 
 //navegación
@@ -181,29 +180,23 @@ function Registro() {
         // bodyDeLaRespuesta con el then.
       })
       .then((bodyDeLaRespuesta) => {
-        if (bodyDeLaRespuesta.apiKey) {
-          document.querySelector("#txtRegistroUsuario").value = "";
-          document.querySelector("#txtRegistroPassword").value = "";
-          document.querySelector("#txtRegistroPais").value = "";
-          document.querySelector("#pRegistroMensajes").innerHTML =
-            "Se ha registrado exitosamente :)";
-
-          const usuarioLogueado = Usuario.parse({
-            usuario: usuarioIngresado,
-            password: passwordIngresado,
-            idPais: paisIngresado,
-            token: bodyDeLaRespuesta.apikey,
-          });
-          localStorage.setItem(
-            "UsuarioLogueadoObligatorio",
-            JSON.stringify(usuarioLogueado)
-          );
-          NAV.setRoot("page-obtenerActividades");
-          NAV.popToRoot();
-        } else if (bodyDeLaRespuesta.error) {
+        if (bodyDeLaRespuesta.error) {
           document.querySelector("#pRegistroMensajes").innerHTML =
             bodyDeLaRespuesta.error;
         }
+        document.querySelector("#txtRegistroUsuario").value = "";
+        document.querySelector("#txtRegistroPassword").value = "";
+        document.querySelector("#txtRegistroPais").value = "";
+        document.querySelector("#pRegistroMensajes").innerHTML =
+          "Se ha registrado exitosamente :)";
+        token = bodyDeLaRespuesta.apikey;
+        usuarioLogueado = Usuario.parse(bodyDeLaRespuesta);
+        usuarioLogueado.apikey = token;
+        localStorage.setItem(
+          "UsuarioLogueadoObligatorio",
+          JSON.stringify(usuarioLogueado)
+        );
+        NAV.setRoot("page-obtenerActividades");
       })
       .catch((error) => {
         document.querySelector("#pRegistroMensajes").innerHTML =
@@ -217,15 +210,15 @@ function Registro() {
 
 // Login------------------
 function Login() {
-  let emailIngresado = document.querySelector("#txtLoginUsuario").value;
+  let usuarioIngresado = document.querySelector("#txtLoginUsuario").value;
   let passwordIngresado = document.querySelector("#txtLoginPassword").value;
 
   document.querySelector("#pLoginMensajes").innerHTML = "";
 
-  if (emailIngresado && passwordIngresado) {
+  if (usuarioIngresado && passwordIngresado) {
     const url = apiBaseURL + "/login.php";
-    const bodyDeLaSolicitud = {
-      usuario: emailIngresado,
+    let bodyDeLaSolicitud = {
+      usuario: usuarioIngresado,
       password: passwordIngresado,
     };
     fetch(url, {
@@ -236,40 +229,34 @@ function Login() {
       body: JSON.stringify(bodyDeLaSolicitud),
     })
       .then((respuestaDeLaAPI) => {
-        if (respuestaDeLaAPI.status !== 200) {
-          document.querySelector("#pLoginMensajes").innerHTML =
-            "Ha ocurrido un error. Por favor, intente nuevamente.";
-        }
-        const token = respuestaDeLaAPI.headers.get("apiKey");
+        return respuestaDeLaAPI.json(); // .Json devuelve una promesa en el body de la respuesta
+      })
+      .then((bodyDeLaRespuesta) => {
+        if (bodyDeLaRespuesta.error) {
+          mostrarToast("ERROR", "Error", bodyDeLaRespuesta.error);
+        } else if (bodyDeLaRespuesta?.apiKey) {
+          document.querySelector("#txtLoginUsuario").value = "";
+          document.querySelector("#txtLoginPassword").value = "";
+          token = bodyDeLaRespuesta.apiKey;
 
-        if (!token) {
-          document.querySelector("#pLoginMensajes").innerHTML =
-            "El usuario no posee token";
+          usuarioLogueado = Usuario.parse({
+            apiKey: token,
+          });
+          localStorage.setItem(
+            "UsuarioLogueadoObligatorio",
+            JSON.stringify(usuarioLogueado)
+          );
+          NAV.setRoot("page-obtenerActividades"); // Cambio el stack y redirijo a Registro de Actividades
+          NAV.popToRoot();
         }
-        return token;
-      })
-      .then((token) => {
-        document.querySelector("#txtLoginUsuario").value = "";
-        document.querySelector("#txtLoginPassword").value = "";
-        // guardo el token
-        usuarioLogueado = Usuario.parse({
-          usuario: emailIngresado,
-          password: passwordIngresado,
-          token: token,
-        });
-        localStorage.setItem(
-          "UsuarioLogueadoObligatorio",
-          JSON.stringify(usuarioLogueado)
-        );
-        NAV.setRoot("page-obtenerActividades"); // Cambio el stack y redirijo a Registro de Actividades
-        NAV.popToRoot();
-      })
-      .catch((error) => {
-        document.querySelector("#pLoginMensajes").innerHTML = error.message;
-      });
+      }) //cierra then
+      .catch((error) => console.log(error));
   } else {
-    document.querySelector("#pLoginMensajes").innerHTML =
-      "Todos los campos son obligatorios.";
+    mostrarToast(
+      "ERROR",
+      "Datos incompletos",
+      "Debe ingresar emial y contraseña"
+    );
   }
 }
 
@@ -302,7 +289,7 @@ function ObtenerActividades() {
       }
     })
     .then((bodyDeLaRespuesta) => {
-      if (bodyDeLaRespuesta?.error) {
+      if (bodyDeLaRespuesta.error) {
         mostrarToast("ERROR", "Error", bodyDeLaRespuesta.error);
       } else if (bodyDeLaRespuesta?.data?.length > 0) {
         bodyDeLaRespuesta.data.forEach((a) => {
