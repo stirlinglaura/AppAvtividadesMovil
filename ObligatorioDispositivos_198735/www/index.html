@@ -18,17 +18,16 @@
             <ion-route url="/" component="page-home"></ion-route>
             <!--Login-->
             <ion-route url="/login" component="page-login"></ion-route>
-            <!--Registro-->
+            <!--Registro de usuarios-->
             <ion-route url="/usuarios" component="page-registro"></ion-route>
-            <!--Paises
-            <ion-route url="/paises" component="page-paises"></ion-route>-->
-            <!--ObtenerRegistros-->
-            <ion-route url="/registros" component="page-obtenerRegistros"></ion-route>
-            <!--AgregarRegistro-->
-            <ion-route url="/registros" component="page-agregarRegistro"></ion-route>
-            <!--Actividades-->
-            <ion-route url="/actividades" component="page-obtenerActividades"></ion-route>
-
+            <!--ObtenerRegistros de usuario GET /registros.php?idUsuario=-->
+            <ion-route url="/registros" component="page-obtener-registros"></ion-route>
+            <!--AgregarRegistro POST /registros.php-->
+            <ion-route url="/agregar-registro" component="page-agregar-registro"></ion-route>
+            <!--Actividades GET actividades.php-->
+            <ion-route url="/actividades" component="page-obtener-actividades"></ion-route>
+            <!--Paises GET paises.php-->
+            <ion-route url="/paises" component="page-paises"></ion-route>
         </ion-router>
         <ion-nav id="nav"></ion-nav>
 
@@ -44,11 +43,16 @@
                 <ion-list>
                     <ion-item id="btnMenuRegistro" href="/usuarios" onclick="cerrarMenu()">Registro</ion-item>
                     <ion-item id="btnMenuLogin" href="/login" onclick="cerrarMenu()">Login</ion-item>
-                    <ion-item id="btnMenuAgregarRegistro" href="/registros" onclick="cerrarMenu()">Agregar
-                        Actividad</ion-item>
+                    <ion-item id="btnMenuAgregarRegistro" href="/agregar-registro" onclick="cerrarMenu()">Agregar
+                        Registro</ion-item>
                     <ion-item id="btnMenuObtenerActividades" href="/actividades" onclick="cerrarMenu()">Obtener
                         Actividades</ion-item>
+                    <ion-item id="btnMenuObtenerRegistros" href="/registros" onclick="cerrarMenu()">Obtener
+                        actividades
+                        Realizadas</ion-item>
+                    <ion-item id="btnMenuPaises" href="/paises" onclick="cerrarMenu()">Paises</ion-item>
                     <ion-item id="btnMenuCerrarSesion" onclick="cerrarSesion()">Salir</ion-item>
+
                 </ion-list>
             </ion-content>
         </ion-menu>
@@ -56,6 +60,14 @@
 
         <page-home class="ion-page" id="pantalla-home">
             <title>App Actividades</title>
+            <ion-header>
+                <ion-toolbar color="primary">
+                    <ion-buttons slot="start">
+                        <ion-buttons>
+                            <ion-menu-button></ion-menu-button>
+                        </ion-buttons>
+                        <ion-title>Bienvenido</ion-title>
+                </ion-toolbar>
         </page-home>
 
         <!--Pantalla de login-->
@@ -77,13 +89,119 @@
                     <label for="txtLoginPassword">Contraseña</label>
                     <input type="password" id="txtLoginPassword">
                     <br><br>
-                    <ion-button id="btnLoginIngresar" expand="block" color="warning">Ingresar</ion-button>
+                    <ion-button id="btnLoginIngresar" expand="block" color="warning" aria-hidden="false">
+                        <ion-icon slot="start" name="flash-outline"></ion-icon>
+                        Ingresar</ion-button>
                     <br><br>
                 </ion-list>
                 <p id="pLoginMensajes"></p>
                 <br><br><br>
             </ion-content>
         </page-login>
+
+
+        <!--Pantalla de agregar un registro-->
+        <page-agregar-registro class="ion-page" id="pantalla-agregar-registro">
+            <ion-header>
+                <ion-toolbar color="warning">
+                    <ion-buttons slot="start">
+                        <ion-menu-button></ion-menu-button>
+                    </ion-buttons>
+                    <ion-title>Agregar un registro de Ejercicio</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <div id="divAgregarRegistro">
+                    <ion-list>
+                        <ion-item>
+                            <ion-select id="select-actividades" placeholder="Seleccione actividad">
+                            </ion-select>
+                        </ion-item>
+                        <br><br>
+                        <label for="txtAgregarRegistroTiempo">Tiempo</label>
+                        <input type="text" id="txtAgregarRegistroTiempo">
+                        <br><br>
+                        <label for="txtAgregarRegistroFecha">Fecha</label>
+                        <input type="date" id="txtAgregarRegistroFecha">
+                        <br><br>
+                        <input type="button" value="Guardar" id="btnAgregarRegistro">
+                    </ion-list>
+                    <br><br>
+                    <p id="pAgregarRegistroMensajes"></p>
+                </div>
+                <ion-card>
+                    <ion-button id="btnAgregarRegistroVolver" expand="block" color="warning"
+                        aria-hidden="false">Regresar</ion-button>
+                </ion-card>
+                <br><br><br>
+            </ion-content>
+        </page-agregar-registro>
+
+        </page-registro>
+
+
+        <!--Pantalla de obtenerActividades-->
+        <page-obtener-actividades class="ion-page" id="pantalla-obtener-actividades">
+            <ion-header>
+                <ion-toolbar color="warning">
+                    <ion-buttons slot="start">
+                        <ion-menu-button></ion-menu-button>
+                    </ion-buttons>
+                    <ion-title>Actividades</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <ion-card-content>
+                    <ion-list>
+                        <ion-item>
+                            <ion-select id="select-actividades" placeholder="Seleccione actividad">
+                            </ion-select>
+                        </ion-item>
+                    </ion-list>
+                </ion-card-content>
+                <ion-button id="btnAgregarRegistroIr" value="Agregar" color="secondary" shape="round" fill="outline"
+                    aria-hidden="false">Agregar
+                    Registro
+                </ion-button>
+                <br><br>
+                <div>Acá iría el mapa.</div>
+                <br><br><br>
+            </ion-content>
+        </page-obtener-actividades>
+
+        <!--Pantalla de obtenerRegistros-->
+        <page-obtener-registros class="ion-page" id="pantalla-obtener-registros">
+            <title>Países</title>
+            <ion-header>
+                <ion-toolbar color="tertiary">
+                    <ion-buttons slot="start">
+                        <ion-buttons>
+                            <ion-menu-button></ion-menu-button>
+                        </ion-buttons>
+                        <ion-title></ion-title>
+                </ion-toolbar>
+        </page-obtener-registros>
+
+        <!--Pantalla de obtenerPaises-->
+        <page-paises class="ion-page" id="pantalla-paises">
+            <ion-header>
+                <ion-toolbar color="tertiary">
+                    <ion-buttons slot="start">
+                        <ion-buttons>
+                            <ion-menu-button></ion-menu-button>
+                        </ion-buttons>
+                        <ion-title>Países</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <ion-list>
+                    <ion-item>
+                        <ion-select id="select-paises" value="Seleccione país">
+                        </ion-select>
+                    </ion-item>
+                </ion-list>
+            </ion-content>
+        </page-paises>
 
         <!--Pantalla de registro-->
         <page-registro class="ion-page" id="pantalla-registro">
@@ -107,36 +225,11 @@
                     <label for="txtRegistroPais">País de Residencia</label>
                     <input type="number" id="txtRegistroPais">
                     <br><br>
-                    <input type="button" value="Registrar" id="btnRegistroRegistrarse">
+                    <input type="button" value="Registrar" id="btnRegistroRegistrarse" aria-hidden="false">>
                 </ion-list>
                 <br><br>
                 <p id="pRegistroMensajes"></p>
             </ion-content>
-
-        </page-registro>
-        <!--Pantalla de obtenerActividades-->
-        <page-obtenerActividades class="ion-page" id="pantalla-obtenerActividades">
-            <ion-header>
-                <ion-toolbar color="warning">
-                    <ion-buttons slot="start">
-                        <ion-menu-button></ion-menu-button>
-                    </ion-buttons>
-                    <ion-title>Actividades</ion-title>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content>
-                <ion-list>
-                    <ion-item>
-                        <ion-select id="pantalla-obtenerActividades
-                        " placeholder="Seleccione actividad">
-                        </ion-select>
-                    </ion-item>
-                </ion-list>
-                <br>
-                <div>Acá iría el mapa.</div>
-                <br><br><br>
-            </ion-content>
-        </page-obtenerActividades>
 
 
     </ion-app>

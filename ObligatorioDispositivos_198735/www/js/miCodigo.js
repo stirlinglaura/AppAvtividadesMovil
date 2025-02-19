@@ -1,7 +1,8 @@
 // Variables de estado
 let usuarioLogueado = null;
 let listadoActividades = [];
-let actividades = [];
+let actividadesFiltradas = [];
+let listaPaises = [];
 
 // Constantes
 let apiBaseURL = "https://movetrack.develotion.com";
@@ -12,20 +13,23 @@ const NAV = document.querySelector("#nav");
 const HOME = document.querySelector("#pantalla-home");
 const LOGIN = document.querySelector("#pantalla-login");
 const REGISTRO = document.querySelector("#pantalla-registro");
-const AGREGAR_REGISTRO = document.querySelector("#pantalla-agregarRegistro");
-const OBTENER_REGISTROS = document.querySelector("#pantalla-obtenerRegistros");
+const AGREGAR_REGISTRO = document.querySelector("#pantalla-agregar-registro");
+const OBTENER_REGISTROS = document.querySelector("#pantalla-obtener-registros");
 const OBTENER_ACTIVIDADES = document.querySelector(
-  "#pantalla-obtenerActividades"
+  "#pantalla-obtener-actividades"
 );
+const SELECT_ACTIVIDADES = document.querySelector("#select-actividades");
+const PAISES = document.querySelector("#pantalla-paises");
+const SELECT_PAISES = document.querySelector("#select-paises");
 
 //inicio
 inicializar();
 
 function inicializar() {
-  subscripcionAEventos();
+  suscripcionAEventos();
 }
 
-function subscripcionAEventos() {
+function suscripcionAEventos() {
   // Routeo
   ROUTER.addEventListener("ionRouteDidChange", navegar);
   // Login
@@ -36,12 +40,29 @@ function subscripcionAEventos() {
     .addEventListener("click", Registro);
   //Agregar Registro
   document
-    .querySelector("#btnMenuAgregarRegistro")
-    .addEventListener("click", mostrarAgregarRegistro);
-  //Obtener Actividades
+    .querySelector("#btnAgregarRegistro")
+    .addEventListener("click", AgregarRegistro);
+  //ObtenerRegistros de usuario
+  // document
+  // .querySelector("#btnMenuObtenerRegistros")
+  //.addEventListener("click", ObtenerRegistrosUsuario);
+  //Agregar registro ir
+  document
+    .querySelector("#btnAgregarRegistroIr")
+    .addEventListener("click", btnAgregarRegistroIr);
+  //Obtener Actividades desde el menú
   document
     .querySelector("#btnMenuObtenerActividades")
-    .addEventListener("click", ObtenerActividades);
+    .addEventListener("click", ObtenerYListarActividades);
+  //Select Actividades
+  SELECT_ACTIVIDADES.addEventListener("ionChange", actualizarSelectActividades);
+
+  //Obtener Paises
+  document
+    .querySelector("#btnMenuPaises")
+    .addEventListener("click", obtenerPaises);
+  //Select Paises
+  SELECT_PAISES.addEventListener("ionChange", actualizarSelectPaises);
   //Cerrar Sesion
   document
     .querySelector("#btnMenuCerrarSesion")
@@ -50,17 +71,22 @@ function subscripcionAEventos() {
 
 //menu
 function actualizarMenu() {
-  document.querySelector("#btnMenuAgregarRegistro").style.display = "none";
-  document.querySelector("#btnMenuObtenerActividades").style.display = "none";
-  document.querySelector("#btnMenuCerrarSesion").style.display = "none";
   document.querySelector("#btnMenuLogin").style.display = "none";
   document.querySelector("#btnMenuRegistro").style.display = "none";
+  document.querySelector("#btnMenuAgregarRegistro").style.display = "none";
+  document.querySelector("#btnMenuObtenerRegistros").style.display = "none";
+  document.querySelector("#btnMenuObtenerActividades").style.display = "none";
+  document.querySelector("#btnMenuPaises").style.display = "none";
+  document.querySelector("#btnMenuCerrarSesion").style.display = "none";
 
   if (usuarioLogueado) {
     document.querySelector("#btnMenuCerrarSesion").style.display = "block";
     document.querySelector("#btnMenuAgregarRegistro").style.display = "block";
+    document.querySelector("#btnMenuObtenerRegistros").style.display = "none";
     document.querySelector("#btnMenuObtenerActividades").style.display =
       "block";
+    document.querySelector("#btnMenuAgregarRegistro").style.display = "block";
+    document.querySelector("#btnMenuPaises").style.display = "block";
   } else {
     document.querySelector("#btnMenuLogin").style.display = "block";
     document.querySelector("#btnMenuRegistro").style.display = "block";
@@ -87,23 +113,29 @@ function mostrarAgregarRegistro() {
   AGREGAR_REGISTRO.style.display = "block";
 }
 
-function mostrarRegistros() {
+function mostrarObtenerRegistrosUsuario() {
   ocultarPantallas();
   OBTENER_REGISTROS.style.display = "block";
 }
 
 function mostrarActividades() {
   ocultarPantallas();
+  ObtenerYListarActividades();
   OBTENER_ACTIVIDADES.style.display = "block";
+  actualizarMenu();
 }
-
+function mostrarPaises() {
+  ocultarPantallas();
+  PAISES.style.display = "block";
+}
 function ocultarPantallas() {
   HOME.style.display = "none";
   LOGIN.style.display = "none";
   REGISTRO.style.display = "none";
-  // AGREGAR_REGISTRO.style.display = "none";
-  // OBTENER_REGISTROS.style.display = "none";
+  AGREGAR_REGISTRO.style.display = "none";
+  OBTENER_REGISTROS.style.display = "none";
   OBTENER_ACTIVIDADES.style.display = "none";
+  PAISES.style.display = "none";
 }
 
 //Logout------------------
@@ -111,13 +143,17 @@ function cerrarSesion() {
   usuarioLogueado = null;
   localStorage.clear();
   NAV.setRoot("page-login");
+  cerrarMenu();
 }
-
+//ir a Agregar registro
+function btnAgregarRegistroIr() {
+  NAV.push("page-agregar-registro");
+}
 //navegación
 
 function verificarInicio() {
   if (usuarioLogueado) {
-    NAV.setRoot("page-obtenerActividades");
+    NAV.setRoot("page-obtener-actividades");
     NAV.popToRoot();
   } else {
     NAV.setRoot("page-login");
@@ -142,9 +178,15 @@ function navegar(evt) {
     case "/actividades":
       mostrarActividades();
       break;
-    //case "/registro-actividad":
-    //mostrarRegistroActividad();
-    //break;
+    //case "/registros":
+    //  mostrarObtenerRegistrosUsuario();
+    //  break;
+    case "/paises":
+      mostrarPaises();
+      break;
+    case "/agregar-registro":
+      mostrarAgregarRegistro();
+      break;
   }
 }
 
@@ -153,6 +195,7 @@ function Registro() {
   let usuarioIngresado = document.querySelector("#txtRegistroUsuario").value;
   let passwordIngresado = document.querySelector("#txtRegistroPassword").value;
   let paisIngresado = document.querySelector("#txtRegistroPais").value;
+  const idPais = parseInt(paisIngresado);
 
   document.querySelector("#pRegistroMensajes").innerHTML = "";
 
@@ -161,7 +204,7 @@ function Registro() {
     const bodyDeLaSolicitud = {
       usuario: usuarioIngresado,
       password: passwordIngresado,
-      idPais: paisIngresado,
+      idPais: idPais,
     };
 
     fetch(url, {
@@ -187,16 +230,14 @@ function Registro() {
         document.querySelector("#txtRegistroUsuario").value = "";
         document.querySelector("#txtRegistroPassword").value = "";
         document.querySelector("#txtRegistroPais").value = "";
-        document.querySelector("#pRegistroMensajes").innerHTML =
-          "Se ha registrado exitosamente :)";
+        mostrarToast("SUCCESS", ":)", "Se ha registrado exitosamente.");
         token = bodyDeLaRespuesta.apikey;
         usuarioLogueado = Usuario.parse(bodyDeLaRespuesta);
-        usuarioLogueado.apikey = token;
         localStorage.setItem(
           "UsuarioLogueadoObligatorio",
           JSON.stringify(usuarioLogueado)
         );
-        NAV.setRoot("page-obtenerActividades");
+        NAV.setRoot("page-agregar-registro");
       })
       .catch((error) => {
         document.querySelector("#pRegistroMensajes").innerHTML =
@@ -217,7 +258,7 @@ function Login() {
 
   if (usuarioIngresado && passwordIngresado) {
     const url = apiBaseURL + "/login.php";
-    let bodyDeLaSolicitud = {
+    const bodyDeLaSolicitud = {
       usuario: usuarioIngresado,
       password: passwordIngresado,
     };
@@ -229,33 +270,35 @@ function Login() {
       body: JSON.stringify(bodyDeLaSolicitud),
     })
       .then((respuestaDeLaAPI) => {
+        if (respuestaDeLaAPI.status !== 200) {
+          mostrarToast(
+            "ERROR",
+            "Error",
+            "Ha ocurrido un error, por favor intente nuevamente."
+          );
+        }
         return respuestaDeLaAPI.json(); // .Json devuelve una promesa en el body de la respuesta
       })
       .then((bodyDeLaRespuesta) => {
-        if (bodyDeLaRespuesta.error) {
-          mostrarToast("ERROR", "Error", bodyDeLaRespuesta.error);
-        } else if (bodyDeLaRespuesta?.apiKey) {
+        if (bodyDeLaRespuesta.apiKey) {
           document.querySelector("#txtLoginUsuario").value = "";
           document.querySelector("#txtLoginPassword").value = "";
-          token = bodyDeLaRespuesta.apiKey;
-
-          usuarioLogueado = Usuario.parse({
-            apiKey: token,
-          });
+          usuarioLogueado = Usuario.parse(bodyDeLaRespuesta);
           localStorage.setItem(
             "UsuarioLogueadoObligatorio",
             JSON.stringify(usuarioLogueado)
-          );
-          NAV.setRoot("page-obtenerActividades"); // Cambio el stack y redirijo a Registro de Actividades
-          NAV.popToRoot();
-        }
+          ); // Guardo el usuario en el local storage
+          NAV.setRoot("page-agregar-registro"); // Cambio el stack y redirijo a Registro de Actividades
+          NAV.popToRoot(); // Limpio el stack de navegación
+        } else if (respuestaBody.mensaje)
+          document.querySelector("#pLogin").innerHTML = respuestaBody.mensaje;
       }) //cierra then
-      .catch((error) => console.log(error));
+      .catch((mensaje) => console.log(mensaje));
   } else {
     mostrarToast(
       "ERROR",
       "Datos incompletos",
-      "Debe ingresar emial y contraseña"
+      "Debe ingresar correo y contraseña"
     );
   }
 }
@@ -269,16 +312,29 @@ function actualizarUsuarioLogueadoDesdeLocalStorage() {
   }
 }
 // Registros------------------
-function AgregarRegistro() {}
+function AgregarRegistro() {
+  document.querySelector("#select-actividades").innerHTML = "";
+
+  let actividadSeleccionada = document.querySelector(
+    "#select-actividades"
+  ).value;
+  let fechaIngresada = document.querySelector("#txtAgregarRegistroFecha").value;
+  let tiempoIngresado = document.querySelector(
+    "#txtAgregarRegistroTiempo"
+  ).value;
+}
 
 // Actividades------------------
-function ObtenerActividades() {
-  const url = apiBaseURL + "/actividades";
+function ObtenerYListarActividades() {
+  listadoActividades = []; // Limpio el array de actividades
+  const url = `${apiBaseURL}/actividades.php?iduser={usuarioLogueado.idUsuario}`;
+
   fetch(url, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "x-auth": usuarioLogueado.token,
+      "apikey": usuarioLogueado.token,
+      "iduser": usuarioLogueado.idUsuario,
     },
   })
     .then((respuestaDeLaAPI) => {
@@ -289,25 +345,134 @@ function ObtenerActividades() {
       }
     })
     .then((bodyDeLaRespuesta) => {
-      if (bodyDeLaRespuesta.error) {
+      console.log("Respuesta de la API:", bodyDeLaRespuesta);
+      if (!bodyDeLaRespuesta || !bodyDeLaRespuesta.actividades) {
         mostrarToast("ERROR", "Error", bodyDeLaRespuesta.error);
-      } else if (bodyDeLaRespuesta?.data?.length > 0) {
-        bodyDeLaRespuesta.data.forEach((a) => {
-          actividades.push(Actividad.parse(a));
+      } else if (bodyDeLaRespuesta?.actividades?.length >0) {    {
+          bodyDeLaRespuesta.actividades.forEach(a => {
+          listadoActividades.push(Actividad.parse(a)); // Agrego la actividad al array de actividades
         });
-        listadoactividades += "<br>";
-      } else {
+        actualizarSelectActividades();
+      }} else {
         mostrarToast("ERROR", "Error", "Por favor, intente nuevamente.");
-      }
-    })
-    .catch((error) => console.log(error));
+      }    })
+    .catch((error) => console.log("Error al obtener actividades", error));
 }
 
+function actualizarSelectActividades() {
+  SELECT_ACTIVIDADES.innerHTML = "";
+  for (let i = 0; i < listadoActividades.length; i++) {
+    const actividadActual = listadoActividades[i];
+    console.log("actividadActual",actividadActual);
+    SELECT_ACTIVIDADES.innerHTML += `<ion-select-option value="${actividadActual.id}">${actividadActual.nombre}</ion-select-option>`;
+    
+  }
+}
+function listarActividades() {
+document.querySelectorAll("#select-actividades").innerHTML = "";
+for (let i = 0; i < listadoActividades.length; i++) {
+  const actividadActual = listadoActividades[i];
+  document.querySelector("#select-actividades").innerHTML += `<ion-select-option value="${actividadActual.id}">${actividadActual.nombre}</ion-select-option>`;
+}
+}
+function completarTablaActividades() {
+  let listadoActividades = '<ion-list>';
+  actividadesFiltradas.forEach((p) => {
+      let listadoEtiquetas = '';
+      p.etiquetas.forEach((e, i) => {
+          listadoEtiquetas += `<ion-badge color="warning">${e}</ion-badge>`;
+          if (i !== p.etiquetas.length -1 ) {
+              listadoEtiquetas += " "
+          }
+      });
+
+      listadoProductos += `
+          <ion-item class="ion-item-producto" producto-id="${p.id}">
+              <ion-thumbnail slot="start">
+                  <img src="${p.getURLImagen()}" width="100"/>
+              </ion-thumbnail>
+              <ion-label>
+                  <h2>${p.nombre}</h2>
+                  <h3>${p.codigo}</h3>
+                  <h3>$${p.precio}</h3>
+                  <h4>${listadoEtiquetas}</h4>
+                  <h4>
+                      <ion-badge color="${p.estado === 'en stock'? 'success' : 'danger'}">${p.estado}</ion-badge>
+                  </h4>
+              </ion-label>
+          </ion-item>
+      `;
+  });
+  listadoProductos += '</ion-list>'
+
+  if (productosFiltrados.length === 0) {
+      listadoProductos = "No se encontraron productos.";
+  }
+
+  document.querySelector("#divProductos").innerHTML = listadoProductos;
+
+  const tagsProductos = document.querySelectorAll(".ion-item-producto");
+
+  tagsProductos.forEach((tp) => {
+      tp.addEventListener('click', tagProductoClickHandler);
+  });
+}
+//paises
+function obtenerPaises() {
+  let listaPaises = [];
+  const url = apiBaseURL + "/paises.php";
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": usuarioLogueado.token,
+      "id": usuarioLogueado.idUsuario
+    },
+  })
+    .then((respuestaDeLaAPI) => {
+      return respuestaDeLaAPI.json();
+    })
+    .then((bodyDeLaRespuesta) => {
+      if (bodyDeLaRespuesta.error) {
+        mostrarToast("ERROR", "Error", bodyDeLaRespuesta.error);
+      } else if (bodyDeLaRespuesta != null) {
+        bodyDeLaRespuesta.idPais.forEach((pais) => {
+          listaPaises.push(Pais.parse(pais));
+        });
+        console.log(listaPaises);
+        actualizarSelectPaises();
+      } else {
+        mostrarToast("ERROR", "Error", "No se han encontrado paises.");
+      }
+    })
+    .catch((error) => console.log("Error al cargar paises", error));
+}
+
+//Otras
+function actualizarSelectPaises() {
+  SELECT_PAISES.innerHTML = "";
+  for (let i = 0; i < listaPaises.length; i++) {
+    const paisActual = listaPaises[i];
+    console.log("actualizacion", listaPaises.length);
+    SELECT_PAISES.innerHTML += `<ion-select-option value="${paisActual.id}">
+    ${paisActual.name}</ion-select-option>`;
+  }
+}
 function cerrarSesionPorFaltaDeToken() {
   mostrarToast("ERROR", "No autorizado", "Se ha cerrado sesión por seguridad.");
   cerrarSesion();
 }
-
+function obtenerActividadPorID(id) {
+  let actividadARegistar = null;
+  let i = 0;
+  while (i < actividades.length && !actividadARegistrar) {
+    if (actividades[i].id == id) {
+      actividadARegistar = actividades[i];
+    }
+    i++;
+  }
+  return actividadARegistar;
+}
 async function mostrarToast(tipo, titulo, mensaje) {
   const toast = document.createElement("ion-toast");
   toast.header = titulo;
