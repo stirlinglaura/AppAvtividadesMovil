@@ -7,9 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Actividades</title>
 
+    <!-- ionic -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
     <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+
+    <!-- mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 
 <body>
@@ -24,10 +31,10 @@
             <ion-route url="/registros" component="page-obtener-registros"></ion-route>
             <!--AgregarRegistro POST /registros.php-->
             <ion-route url="/agregar-registro" component="page-agregar-registro"></ion-route>
-            <!--Actividades GET actividades.php-->
-            <ion-route url="/actividades" component="page-obtener-actividades"></ion-route>
             <!--Paises GET paises.php-->
             <ion-route url="/paises" component="page-paises"></ion-route>
+            <!--Informes GET-->
+            <ion-route url="/informes" component="page-informes"></ion-route>
         </ion-router>
         <ion-nav id="nav"></ion-nav>
 
@@ -45,12 +52,10 @@
                     <ion-item id="btnMenuLogin" href="/login" onclick="cerrarMenu()">Login</ion-item>
                     <ion-item id="btnMenuAgregarRegistro" href="/agregar-registro" onclick="cerrarMenu()">Agregar
                         Registro</ion-item>
-                    <ion-item id="btnMenuObtenerActividades" href="/actividades" onclick="cerrarMenu()">Obtener
-                        Actividades</ion-item>
                     <ion-item id="btnMenuObtenerRegistros" href="/registros" onclick="cerrarMenu()">Obtener
-                        actividades
-                        Realizadas</ion-item>
+                        Registros</ion-item>
                     <ion-item id="btnMenuPaises" href="/paises" onclick="cerrarMenu()">Paises</ion-item>
+                    <ion-item id="btnMenuInformes" href="/informes" onclick="cerrarMenu()">Informes</ion-item>
                     <ion-item id="btnMenuCerrarSesion" onclick="cerrarSesion()">Salir</ion-item>
 
                 </ion-list>
@@ -69,6 +74,129 @@
                         <ion-title>Bienvenido</ion-title>
                 </ion-toolbar>
         </page-home>
+
+
+        <!--Pantalla de agregar un registro-->
+        <page-agregar-registro class="ion-page" id="pantalla-agregar-registro">
+            <ion-header>
+                <ion-toolbar color="warning">
+                    <ion-buttons slot="start">
+                        <ion-menu-button></ion-menu-button>
+                    </ion-buttons>
+                    <ion-title>Agregar Registro</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <div id="divAgregarRegistro">
+                    <ion-list>
+                        <ion-item>
+                            <ion-select id="select-actividades" placeholder="Seleccione actividad"
+                                onchange="actividadesChangeHandle(event)">
+                            </ion-select>
+                        </ion-item>
+                        <br><br>
+                        <label for="txtAgregarRegistroTiempo">Tiempo</label>
+                        <input type="text" id="txtAgregarRegistroTiempo">
+                        <br><br>
+                        <label for="txtAgregarRegistroFecha">Fecha</label>
+                        <input type="date" id="txtAgregarRegistroFecha">
+                        <br><br>
+                        <ion-button id="btnGuardarRegistro" expand="block" color="warning" aria-hidden="false">Guardar
+                        </ion-button>
+                    </ion-list>
+                    <br><br>
+                    <p id="pAgregarRegistroMensajes"></p>
+                </div>
+                <ion-card>
+                    <ion-button id="btnVolver" expand="block" color="warning" aria-hidden="false">Regresar</ion-button>
+                </ion-card>
+                <br><br><br>
+            </ion-content>
+        </page-agregar-registro>
+
+        <!--Pantalla de obtenerRegistros-->
+        <page-obtener-registros class="ion-page" id="pantalla-obtener-registros">
+            <ion-header>
+                <ion-toolbar color="warning">
+                    <ion-buttons slot="start">
+                        <ion-menu-button></ion-menu-button>
+                    </ion-buttons>
+                    <ion-title>Obtener Registros</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <div id="divObtenerRegistros"></div>
+                <br><br><br>
+                <ion-button id="btnAgregarRegistroIr" value="Agregar" color="secondary" shape="round" fill="outline"
+                    aria-hidden="false">Agregar
+                    Registro
+                </ion-button>
+                <br><br>
+                <ion-list>
+                    <ion-item>
+                        <ion-button id="btnFiltrarSemana" expand="block" color="warning" onclick="aplicarFiltro(event)"
+                            aria-hidden="false" value="semana">
+                            Semana</ion-button></ion-item>
+                    <ion-item>
+                        <ion-button id="btnFiltrarMes" expand="block" color="warning" onclick="aplicarFiltro(event)"
+                            aria-hidden="false" value="mes">
+                            Mes</ion-button>
+                    </ion-item>
+                    <ion-item>
+                        <ion-button id="btnFiltrarHistorico" expand="block" color="warning"
+                            onclick="aplicarFiltro(event)" aria-hidden="false" value="historico">
+                            Histórico</ion-button>
+                    </ion-item>
+                </ion-list>
+                <br><br><br>
+                <p id="pObtenerRegistrosMensajes"></p>
+                <br><br><br>
+            </ion-content>
+        </page-obtener-registros>
+
+        <!--Pantalla de obtenerPaises-->
+        <page-paises class="ion-page" id="pantalla-paises">
+            <ion-header>
+                <ion-toolbar color="tertiary">
+                    <ion-buttons slot="start">
+                        <ion-buttons>
+                            <ion-menu-button></ion-menu-button>
+                        </ion-buttons>
+                        <ion-title>Países</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <ion-list>
+                    <ion-item>
+                        <ion-select id="select-paises" placeholder="Seleccione pais"
+                            onchange="usuariosEnPaisChangeHandle(event)">
+                        </ion-select>
+                    </ion-item>
+                </ion-list>
+                <div id="divMapa" style="height: 400px; width : 400px;">Mapa</div>
+                <br><br><br>
+                <p id="#pMapaMensajes"></p>
+                <br><br><br>
+            </ion-content>
+        </page-paises>
+
+        <!--Pantalla de informes-->
+        <page-informes class="ion-page" id="pantalla-informes">
+            <ion-header>
+                <ion-toolbar color="primary">
+                    <ion-buttons slot="start">
+                        <ion-buttons>
+                            <ion-menu-button></ion-menu-button>
+                        </ion-buttons>
+                        <ion-title>Informes</ion-title>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <div id="divObtenerInformes"></div>
+                <div></div>
+                <p id="pObtenerInformesMensajes"></p>
+            </ion-content>
+        </page-informes>
 
         <!--Pantalla de login-->
         <page-login class="ion-page" id="pantalla-login">
@@ -98,110 +226,6 @@
                 <br><br><br>
             </ion-content>
         </page-login>
-
-
-        <!--Pantalla de agregar un registro-->
-        <page-agregar-registro class="ion-page" id="pantalla-agregar-registro">
-            <ion-header>
-                <ion-toolbar color="warning">
-                    <ion-buttons slot="start">
-                        <ion-menu-button></ion-menu-button>
-                    </ion-buttons>
-                    <ion-title>Agregar un registro de Ejercicio</ion-title>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content>
-                <div id="divAgregarRegistro">
-                    <ion-list>
-                        <ion-item>
-                            <ion-select id="select-actividades" placeholder="Seleccione actividad">
-                            </ion-select>
-                        </ion-item>
-                        <br><br>
-                        <label for="txtAgregarRegistroTiempo">Tiempo</label>
-                        <input type="text" id="txtAgregarRegistroTiempo">
-                        <br><br>
-                        <label for="txtAgregarRegistroFecha">Fecha</label>
-                        <input type="date" id="txtAgregarRegistroFecha">
-                        <br><br>
-                        <input type="button" value="Guardar" id="btnAgregarRegistro">
-                    </ion-list>
-                    <br><br>
-                    <p id="pAgregarRegistroMensajes"></p>
-                </div>
-                <ion-card>
-                    <ion-button id="btnAgregarRegistroVolver" expand="block" color="warning"
-                        aria-hidden="false">Regresar</ion-button>
-                </ion-card>
-                <br><br><br>
-            </ion-content>
-        </page-agregar-registro>
-
-        </page-registro>
-
-
-        <!--Pantalla de obtenerActividades-->
-        <page-obtener-actividades class="ion-page" id="pantalla-obtener-actividades">
-            <ion-header>
-                <ion-toolbar color="warning">
-                    <ion-buttons slot="start">
-                        <ion-menu-button></ion-menu-button>
-                    </ion-buttons>
-                    <ion-title>Actividades</ion-title>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content>
-                <ion-card-content>
-                    <ion-list>
-                        <ion-item>
-                            <ion-select id="select-actividades" placeholder="Seleccione actividad">
-                            </ion-select>
-                        </ion-item>
-                    </ion-list>
-                </ion-card-content>
-                <ion-button id="btnAgregarRegistroIr" value="Agregar" color="secondary" shape="round" fill="outline"
-                    aria-hidden="false">Agregar
-                    Registro
-                </ion-button>
-                <br><br>
-                <div>Acá iría el mapa.</div>
-                <br><br><br>
-            </ion-content>
-        </page-obtener-actividades>
-
-        <!--Pantalla de obtenerRegistros-->
-        <page-obtener-registros class="ion-page" id="pantalla-obtener-registros">
-            <title>Países</title>
-            <ion-header>
-                <ion-toolbar color="tertiary">
-                    <ion-buttons slot="start">
-                        <ion-buttons>
-                            <ion-menu-button></ion-menu-button>
-                        </ion-buttons>
-                        <ion-title></ion-title>
-                </ion-toolbar>
-        </page-obtener-registros>
-
-        <!--Pantalla de obtenerPaises-->
-        <page-paises class="ion-page" id="pantalla-paises">
-            <ion-header>
-                <ion-toolbar color="tertiary">
-                    <ion-buttons slot="start">
-                        <ion-buttons>
-                            <ion-menu-button></ion-menu-button>
-                        </ion-buttons>
-                        <ion-title>Países</ion-title>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content>
-                <ion-list>
-                    <ion-item>
-                        <ion-select id="select-paises" value="Seleccione país">
-                        </ion-select>
-                    </ion-item>
-                </ion-list>
-            </ion-content>
-        </page-paises>
 
         <!--Pantalla de registro-->
         <page-registro class="ion-page" id="pantalla-registro">
