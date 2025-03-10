@@ -40,11 +40,10 @@
 
         <ion-menu content-id="main" id="menu">
             <ion-header>
-                <ion-buttons slot="start">
-                    <ion-buttons color="dark">
-                        <ion-menu-button></ion-menu-button>
-                        <ion-title>Menú</ion-title>
-                    </ion-buttons>
+                <ion-buttons slot="start" color="dark">
+                    <ion-menu-button></ion-menu-button>
+                    <ion-title>Menú</ion-title>
+                </ion-buttons>
             </ion-header>
             <ion-content>
                 <ion-list>
@@ -91,7 +90,7 @@
                     <ion-list>
                         <ion-item>
                             <ion-select id="select-actividades" placeholder="Seleccione actividad"
-                                onchange="actividadesChangeHandle(event)">
+                                ionchange="actividadesChangeHandle(event)">
                             </ion-select>
                         </ion-item>
                         <br><br>
@@ -169,13 +168,13 @@
                 <ion-list>
                     <ion-item>
                         <ion-select id="select-paises" placeholder="Seleccione pais"
-                            onchange="usuariosEnPaisChangeHandle(event)">
+                            ionchange="usuariosEnPaisChangeHandle(event)">
                         </ion-select>
                     </ion-item>
                 </ion-list>
                 <div id="divMapa" style="height: 400px; width : 400px;">Mapa</div>
                 <br><br><br>
-                <p id="#pMapaMensajes"></p>
+                <p id="pMapaMensajes"></p>
                 <br><br><br>
             </ion-content>
         </page-paises>

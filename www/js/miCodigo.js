@@ -215,7 +215,7 @@ function mostrarPaises() {
 
 //ir a Agregar registro
 function btnAgregarRegistroIr() {
-  NAV.push("page-agregar-registros");
+  NAV.push("page-agregar-registro");
 }
 //Agregar registro REGRESAR a pantalla de registros***
 
@@ -357,30 +357,37 @@ function Login() {
 
 // Registros de Usuario - Agregar------------------
 function AgregarRegistro() {
+  registrosDeUsuario = [];
+  if (!usuarioLogueado) {
+    document.querySelector("#pAgregarRegistroMensajes").innerHTML = "Debe iniciar sesión para agregar registros.";
+    return;
+  }
+
   const url = apiBaseURL + "/registros.php";
   const actividadSeleccionada = document.getElementById("select-actividades").value;
   const actividadSeleccionadaId = parseInt(actividadSeleccionada);
-  const fechaIngresada = new Date(document.querySelector("#txtAgregarRegistroFecha").value);
-  const tiempoIngresado = document.querySelector("#txtAgregarRegistroTiempo").value;
-  const dia = fechaIngresada.getDate();
-  const mes = fechaIngresada.getMonth() + 1;
-  const anio = fechaIngresada.getFullYear();
-  const nuevoDia = dia.toString().padStart(2, "0");
-  const nuevoMes = mes.toString().padStart(2, "0");
-  const nuevoAnio = anio.toString();
-  let nuevaFechaIngresada = `${nuevoAnio}-${nuevoMes}-${nuevoDia}`;
 
-  let hoy = new Date();
-  if (fechaIngresada > hoy) { //fecha mayor  a la actual sale de la función con return
+  const fechaIngresadaValor = document.querySelector("#txtAgregarRegistroFecha").value;
+  if (!fechaIngresadaValor) {
+    document.querySelector("#pAgregarRegistroMensajes").innerHTML = "Debe ingresar una fecha válida.";
+    return;
+  }
+  const fechaIngresada = new Date(fechaIngresadaValor);
+  const tiempoIngresado = document.querySelector("#txtAgregarRegistroTiempo").value;
+
+  const hoy = new Date();
+  if (fechaIngresada > hoy) {
     document.querySelector("#pAgregarRegistroMensajes").innerHTML = "La fecha ingresada no puede ser mayor a la fecha actual.";
     return;
   }
-  else if (actividadSeleccionadaId && nuevaFechaIngresada && tiempoIngresado) {
-    let bodyDeLaSolicitud = {
+
+  if (actividadSeleccionadaId && tiempoIngresado) {
+    const bodyDeLaSolicitud = {
       idActividad: actividadSeleccionadaId,
-      fecha: nuevaFechaIngresada,
+      fecha: fechaIngresadaValor,
       tiempo: tiempoIngresado,
     };
+
     fetch(url, {
       method: "POST",
       headers: {
@@ -393,32 +400,40 @@ function AgregarRegistro() {
       .then((respuestaDeLaAPI) => {
         if (respuestaDeLaAPI.status === 401) {
           cerrarSesionPorFaltaDeToken();
+
+        } else if (respuestaDeLaAPI.status === 200) {
+          document.querySelector("#txtAgregarRegistroFecha").value = "";
+          document.querySelector("#txtAgregarRegistroTiempo").value = "";
+          document.querySelector("#select-actividades").value = "";
+          return respuestaDeLaAPI.json();
         }
-        else {
-          if (respuestaDeLaAPI.status === 200) {
-            document.querySelector("#txtAgregarRegistroFecha").value = "";
-            document.querySelector("#txtAgregarRegistroTiempo").value = "";
-            document.querySelector("#select-actividades").value = "";
-          }
-        } return respuestaDeLaAPI.json();
-      }).then((bodyDeLaRespuesta) => {
-        if (!bodyDeLaRespuesta) {
+
+      })
+      .then((bodyDeLaRespuesta) => {
+        if (bodyDeLaRespuesta.error) {
           mostrarToast("ERROR", "Error", bodyDeLaRespuesta.error);
 
-        } else if (bodyDeLaRespuesta.registros?.length > 0) {
-          bodyDeLaRespuesta.registros.forEach(r => {
+        }
+        else if (bodyDeLaRespuesta?.registros?.length > 0) {
+          bodyDeLaRespuesta.registros.forEach((r) => {
             registrosDeUsuario.push(ActividadUsuario.parse(r));
           });
-          console.log(bodyDeLaRespuesta);
           mostrarToast("SUCCESS", "Registro exitoso", "Se ha registrado la actividad correctamente.");
           mostrarTablaRegistrosUsuario();
           NAV.push("page-obtener-registros");
           NAV.popToRoot();
+        } else {
+          mostrarToast("ERROR", "Error", "No se pudo registrar la actividad.");
         }
-      }).catch(error => console.log(error));
+      })
+      .catch((error) => {
+        console.error(error);
+        document.querySelector("#pAgregarRegistroMensajes").innerHTML = "Error al conectar con el servidor.";
+      });
+  } else {
+    document.querySelector("#pAgregarRegistroMensajes").innerHTML = "Todos los campos son obligatorios.";
   }
 }
-
 
 
 //Registros de Usuario - Obtener------------------
@@ -445,6 +460,7 @@ function ObtenerRegistrosUsuario() {
       } else if (bodyDeLaRespuesta.registros.length > 0) {
         bodyDeLaRespuesta.registros.forEach(r => {
           registrosDeUsuario.push((ActividadUsuario.parse(r)));
+          console.log(registrosDeUsuario);
         });
         console.log("resp", bodyDeLaRespuesta);
         completarTablaRegistrosUsuario();
@@ -453,6 +469,41 @@ function ObtenerRegistrosUsuario() {
       }
     }).catch(error => console.log(error));
 }
+//muestro los registros de usuario del GET
+function completarTablaRegistrosUsuario() {
+  let listadoRegistrosUsuario = '<ion-list>';
+  registrosDeUsuario.forEach((r) => {
+
+    listadoRegistrosUsuario += `
+        <ion-item class="ion-item-registro-usuario" actividad-usuario-id="${r.id}">
+     <ion-thumbnail slot="start">
+                    <img src="${r.actividad.getURLImagen()}" width="100"/>
+                </ion-thumbnail>
+                <ion-label>
+                    <h2>${r.duracion}</h2>
+                    <h3>${r.fecha}</h3>
+                     <ion-button fill="clear" color="danger" onclick="eliminarRegistro(${r.id})">
+                        <ion-icon name="trash"></ion-icon>
+                    </h4>
+                </ion-label>
+          </ion-item>
+     `;
+  });
+  listadoRegistrosUsuario += '</ion-list>'
+  if (registrosDeUsuario.length == 0) {
+    document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "No se encontraron registros.";
+  } else {
+    document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "";
+  }
+  const registrosDiv = document.querySelector("#divObtenerRegistros");
+  if (registrosDiv) {
+    registrosDiv.innerHTML = listadoRegistrosUsuario;
+  }
+
+}
+
+
+//Eliminar registro------------------
 
 function eliminarRegistro(id) {
   const reg = obtenerRegistroPorId(id);
@@ -504,42 +555,6 @@ function obtenerRegistroPorID(id) {
   return reg;
 }
 
-function completarTablaRegistrosUsuario() {
-  let listadoRegistrosUsuario = '<ion-list>';
-  registrosDeUsuario.forEach((r) => {
-    let listadoEtiquetas = '';
-    r.etiquetas.forEach((e, i) => {
-      listadoEtiquetas += `<ion-badge color="warning">${e}</ion-badge>`;
-      if (i !== r.etiquetas.length - 1) {
-        listadoEtiquetas += " "
-      }
-    });
-    listadoRegistrosUsuario += `
-        <ion-item class="ion-item-registro-usuario" actividad-usuario-id="${r.id}">
-     <ion-thumbnail slot="start">
-                    <img src="${r.actividad.getURLImagen()}" width="100"/>
-                </ion-thumbnail>
-                <ion-label>
-                    <h2>${r.duracion}</h2>
-                    <h3>${r.fecha}</h3>
-                    <h4>${listadoEtiquetas}</h4>
-                    <h4>
-                    <ion-button fill="clear" color="danger" onclick="eliminarRegistro(${r.id})">
-                        <ion-icon name="trash"></ion-icon>
-                    </h4>
-                </ion-label>
-          </ion-item>
-     `;
-  });
-  listadoRegistrosUsuario += '</ion-list>'
-
-  if (registrosDeUsuario.length == 0) {
-    document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "No se encontraron registros.";
-  }
-  document.querySelector("#divObtenerRegistros").innerHTML = listadoRegistrosUsuario;
-
-};
-
 
 
 // Actividades------------------
@@ -571,9 +586,6 @@ function ObtenerActividades() {
           listadoActividades.push(Actividad.parse(a)); // Agrego la actividad al array de actividades
         });
         actualizarSelectActividades();
-        //listarActividades();
-        // console.log(bodyDeLaRespuesta);
-        //console.log(listadoActividades);
       }
       else {
         mostrarToast("ERROR", "Error", "Por favor, intente nuevamente.");
@@ -685,44 +697,44 @@ function filtrarRegistrosPorPeriodo(filtro) {
   return registrosUsuarioFiltrados; //devuelve todos si la fecha es mayor a la actual
 }
 
-
 function completarTablaRegistrosUsuarioFiltrados() {
   let listadoRegistrosUsuarioFiltrados = '<ion-list>';
-  if (registrosUsuarioFiltrados.length > 0) {
-    registrosUsuarioFiltrados.forEach((r) => {
-      let listadoEtiquetas = '';
-      r.etiquetas.forEach((e, i) => {
-        listadoEtiquetas += `<ion-badge color="warning">${e}</ion-badge>`;
-        if (i !== r.etiquetas.length - 1) {
-          listadoEtiquetas += " "
-        }
+
+  try {
+    if (registrosUsuarioFiltrados.length > 0) {
+
+      registrosUsuarioFiltrados.forEach((r) => {
+
+        listadoRegistrosUsuarioFiltrados += `
+          <ion-item class="ion-item-registro-usuario" actividad-usuario-id="${r.idUsuario}">
+            <ion-thumbnail slot="start">
+              <img src="${r.actividad.getURLImagen()}" width="100"/>
+            </ion-thumbnail>
+            <ion-label>
+              <h2>${r.duracion}</h2>
+              <h3>${r.fecha}</h3>
+              <h4>ID: ${r.id}</h4>
+              <ion-button fill="clear" color="danger" onclick="eliminarRegistro(${r.id})">
+                <ion-icon name="trash"></ion-icon>
+              </ion-button>
+            </ion-label>
+          </ion-item>
+        `;
       });
-      listadoRegistrosUsuarioFiltrados += `
-<<ion-item class="ion-item-registro-usuario" actividad-usuario-id="${r.idUsuario}">
-  <ion-thumbnail slot="start">
-    <img src="${au.actividad.getURLImagen()}" width="100"/>
-  </ion-thumbnail>
-  <ion-label>
-    <h2>${r.duracion}</h2>
-    <h3>${r.fecha}</h3>
-    <h4>${listadoEtiquetas}</h4>
-    <h4>ID: ${r.id}</h4>
-    <ion-button fill="clear" color="danger" onclick="eliminarRegistro(${r.id})">
-      <ion-icon name="trash"></ion-icon>
-    </ion-button>
-  </ion-label>
-</ion-item>
-`;
-      listadoRegistrosUsuarioFiltrados += '</ion-list>'
-      if (registrosUsuarioFiltrados.length == 0) {
-        document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "No se encontraron registros.";
-      } else {
-        document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "";
-      }
-      document.querySelector("#divObtenerRegistros").innerHTML = listadoRegistrosUsuarioFiltrados;
-    });
+    }
+    listadoRegistrosUsuarioFiltrados += '</ion-list>';
+
+    if (registrosUsuarioFiltrados.length === 0) {
+      document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "No se encontraron registros.";
+    } else {
+      document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "";
+    }
+    document.querySelector("#divObtenerRegistros").innerHTML = listadoRegistrosUsuarioFiltrados;
+  } catch (error) {
+    document.querySelector("#pObtenerRegistrosMensajes").innerHTML = "Ocurrió un error al cargar los registros.";
   }
 }
+
 
 function aplicarFiltro(evt) {
   const filtro = evt.target.getAttribute("value"); //semana, mes, historico
